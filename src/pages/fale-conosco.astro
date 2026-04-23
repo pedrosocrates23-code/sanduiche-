@@ -1,0 +1,63 @@
+---
+import Base from '../layouts/Base.astro';
+import { getCollection } from 'astro:content';
+
+const pages = await getCollection('pages');
+const page = pages.find(p => p.data.slug === 'fale-conosco');
+---
+
+<Base
+  title="Fale Conosco | Guia da Sanduicheira"
+  description="Entre em contato com a equipe do Guia da Sanduicheira. Estamos prontos para responder suas dúvidas."
+  canonicalUrl="https://guiadasanduicheira.com.br/fale-conosco"
+>
+  <div class="mx-auto max-w-2xl px-4 py-12">
+    <h1 class="text-3xl font-bold text-gray-900 mb-4">Fale Conosco</h1>
+    <p class="text-gray-600 mb-8">
+      Tem dúvidas, sugestões ou quer fazer uma parceria? Entre em contato conosco através do formulário abaixo.
+    </p>
+    <form
+      name="contato"
+      method="POST"
+      data-netlify="true"
+      class="space-y-5"
+    >
+      <div>
+        <label for="nome" class="block text-sm font-medium text-gray-700 mb-1">Nome</label>
+        <input
+          type="text"
+          id="nome"
+          name="nome"
+          required
+          class="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-gray-900 focus:border-orange-500 focus:outline-none focus:ring-2 focus:ring-orange-200"
+        />
+      </div>
+      <div>
+        <label for="email" class="block text-sm font-medium text-gray-700 mb-1">E-mail</label>
+        <input
+          type="email"
+          id="email"
+          name="email"
+          required
+          class="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-gray-900 focus:border-orange-500 focus:outline-none focus:ring-2 focus:ring-orange-200"
+        />
+      </div>
+      <div>
+        <label for="mensagem" class="block text-sm font-medium text-gray-700 mb-1">Mensagem</label>
+        <textarea
+          id="mensagem"
+          name="mensagem"
+          rows="5"
+          required
+          class="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-gray-900 focus:border-orange-500 focus:outline-none focus:ring-2 focus:ring-orange-200"
+        ></textarea>
+      </div>
+      <button
+        type="submit"
+        class="inline-flex items-center gap-2 rounded-full bg-orange-500 text-white px-6 py-3 font-semibold hover:bg-orange-600 transition-colors"
+      >
+        Enviar mensagem
+      </button>
+    </form>
+  </div>
+</Base>

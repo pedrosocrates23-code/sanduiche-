@@ -1,0 +1,28 @@
+---
+interface Props {
+  href: string;
+  label?: string;
+  variant?: 'primary' | 'secondary';
+}
+
+const { href, label = 'Ver na Amazon', variant = 'primary' } = Astro.props;
+
+const base = 'inline-flex items-center gap-2 rounded-full px-5 py-2.5 text-sm font-semibold transition-all duration-200 no-underline';
+const styles = variant === 'primary'
+  ? `${base} bg-[#FF9900] text-gray-900 hover:bg-[#e68a00] shadow-sm hover:shadow-md`
+  : `${base} border-2 border-[#FF9900] text-[#FF9900] hover:bg-[#FF9900] hover:text-gray-900`;
+---
+
+<a
+  href={href}
+  target="_blank"
+  rel="noopener noreferrer nofollow sponsored"
+  class={styles}
+  aria-label={`${label} — abre em nova aba`}
+>
+  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+    <path d="M.045 18.02c.072-.116.187-.124.348-.022 3.636 2.11 7.594 3.166 11.87 3.166 2.852 0 5.668-.533 8.447-1.595l.315-.14c.138-.06.234-.1.293-.13.226-.088.39-.046.525.13.12.174.09.336-.12.49-.405.31-1.02.62-1.848.93-1.39.4-2.668.62-3.833.67h-1.143c-1.53-.02-3.08-.21-4.64-.59C7.27 20.44 4.87 19.2 2.8 17.38c-.12-.1-.165-.2-.13-.31.035-.1.1-.16.19-.2l.19-.085c.06-.03.1-.05.14-.06l-.1.02c-.285-.15-.403-.26-.35-.37l.015-.035.08-.115.12-.17c.085-.12.16-.22.23-.31l.1-.13-.12.14c-.05.06-.08.1-.13.14l-.25.25zM22.4 17.3c.19.04.29.19.31.46.06 1.25-.28 2.47-1.03 3.66-.77 1.2-1.72 2.05-2.88 2.56-.065.02-.12.02-.16-.02-.04-.04-.04-.09 0-.16.8-1.37 1.32-2.7 1.58-4.01.09-.44.16-.74.23-.91.1-.28.3-.41.59-.41l.12.01c.08 0 .15.01.19.02l.06.01z"/>
+    <path d="M12 2C6.477 2 2 6.477 2 12s4.477 10 10 10 10-4.477 10-10S17.523 2 12 2zm0 18c-4.418 0-8-3.582-8-8s3.582-8 8-8 8 3.582 8 8-3.582 8-8 8zm-2-9H8V9h2V7h4v2h2v2h-2v5h-2v-5z"/>
+  </svg>
+  {label}
+</a>

@@ -1,0 +1,21 @@
+---
+import Base from '../layouts/Base.astro';
+import { getCollection, render } from 'astro:content';
+
+const pages = await getCollection('pages');
+const page = pages.find(p => p.data.slug === 'politica-de-privacidade');
+const { Content } = page ? await render(page) : { Content: null };
+---
+
+<Base
+  title="Política de Privacidade | Guia da Sanduicheira"
+  description="Política de privacidade do Guia da Sanduicheira. Saiba como tratamos seus dados pessoais."
+  canonicalUrl="https://guiadasanduicheira.com.br/politica-de-privacidade"
+>
+  <div class="mx-auto max-w-3xl px-4 py-12">
+    <h1 class="text-3xl font-bold text-gray-900 mb-8">Política de Privacidade</h1>
+    <div class="prose">
+      {Content ? <Content /> : <p>Carregando...</p>}
+    </div>
+  </div>
+</Base>

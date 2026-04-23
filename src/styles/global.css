@@ -1,0 +1,89 @@
+@import "tailwindcss";
+
+@theme {
+  --color-brand-primary: #e85d04;
+  --color-brand-secondary: #f48c06;
+  --color-brand-dark: #1a1a2e;
+  --color-brand-light: #fff8f0;
+  --color-text-base: #1f2937;
+  --color-text-muted: #6b7280;
+  --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
+  --font-display: 'Inter', system-ui, sans-serif;
+  --radius-card: 0.75rem;
+  --shadow-card: 0 2px 8px 0 rgb(0 0 0 / 0.08);
+}
+
+@layer base {
+  *, *::before, *::after { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    font-family: var(--font-sans);
+    color: var(--color-text-base);
+    background: #ffffff;
+    line-height: 1.7;
+  }
+  img, picture, video, canvas, svg { display: block; max-width: 100%; }
+  h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-display);
+    font-weight: 700;
+    line-height: 1.25;
+  }
+  a { color: var(--color-brand-primary); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+}
+
+/* Prose para conteúdo de artigos */
+@layer components {
+  .prose {
+    max-width: 72ch;
+    color: var(--color-text-base);
+    font-size: 1.0625rem;
+    line-height: 1.8;
+  }
+  .prose h2 {
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin-top: 2.5rem;
+    margin-bottom: 1rem;
+    color: var(--color-brand-dark);
+  }
+  .prose h3 {
+    font-size: 1.2rem;
+    font-weight: 600;
+    margin-top: 2rem;
+    margin-bottom: 0.75rem;
+    color: var(--color-brand-dark);
+  }
+  .prose p { margin-bottom: 1.25rem; }
+  .prose ul, .prose ol {
+    padding-left: 1.5rem;
+    margin-bottom: 1.25rem;
+  }
+  .prose ul { list-style-type: disc; }
+  .prose ol { list-style-type: decimal; }
+  .prose li { margin-bottom: 0.4rem; }
+  .prose strong { font-weight: 700; color: var(--color-brand-dark); }
+  .prose picture, .prose img {
+    border-radius: var(--radius-card);
+    margin: 1.5rem auto;
+    box-shadow: var(--shadow-card);
+  }
+  .prose table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 1.5rem;
+    font-size: 0.9375rem;
+  }
+  .prose th {
+    background: var(--color-brand-primary);
+    color: white;
+    padding: 0.6rem 1rem;
+    text-align: left;
+    font-weight: 600;
+  }
+  .prose td {
+    padding: 0.6rem 1rem;
+    border-bottom: 1px solid #e5e7eb;
+  }
+  .prose tr:nth-child(even) td { background: #fafafa; }
+}

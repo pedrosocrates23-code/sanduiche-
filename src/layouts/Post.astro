@@ -1,0 +1,109 @@
+---
+import Base from './Base.astro';
+import OptimizedPicture from '../components/OptimizedPicture.astro';
+import AmazonButton from '../components/AmazonButton.astro';
+
+interface AmazonLink { label: string; url: string; }
+
+interface Props {
+  title: string;
+  description: string;
+  pubDate: Date;
+  updatedDate?: Date;
+  featuredImage?: string;
+  featuredImageAlt?: string;
+  slug: string;
+  amazonLinks?: AmazonLink[];
+}
+
+const {
+  title,
+  description,
+  pubDate,
+  updatedDate,
+  featuredImage,
+  featuredImageAlt,
+  slug,
+  amazonLinks = [],
+} = Astro.props;
+
+const canonical = `https://guiadasanduicheira.com.br/${slug}`;
+const dateOpts: Intl.DateTimeFormatOptions = { year: 'numeric', month: 'long', day: 'numeric' };
+const displayDate = (updatedDate ?? pubDate).toLocaleDateString('pt-BR', dateOpts);
+---
+
+<Base
+  title={`${title} | Guia da Sanduicheira`}
+  description={description}
+  image={featuredImage}
+  canonicalUrl={canonical}
+  type="article"
+  pubDate={pubDate}
+>
+  <article class="mx-auto max-w-3xl px-4 py-8">
+
+    <!-- Breadcrumb -->
+    <nav aria-label="breadcrumb" class="mb-6 text-sm text-gray-500">
+      <ol class="flex items-center gap-2">
+        <li><a href="/" class="hover:text-orange-600">Início</a></li>
+        <li class="text-gray-300">/</li>
+        <li class="text-gray-700 truncate max-w-xs">{title}</li>
+      </ol>
+    </nav>
+
+    <!-- Header do artigo -->
+    <header class="mb-8">
+      <h1 class="text-3xl sm:text-4xl font-bold text-gray-900 mb-4 leading-tight">
+        {title}
+      </h1>
+      <p class="text-lg text-gray-500 mb-4">{description}</p>
+      <div class="flex items-center gap-3 text-sm text-gray-400">
+        <time datetime={pubDate.toISOString()}>{displayDate}</time>
+      </div>
+    </header>
+
+    <!-- Imagem principal -->
+    {featuredImage && (
+      <div class="mb-8 overflow-hidden rounded-xl shadow-md">
+        <OptimizedPicture
+          src={featuredImage}
+          alt={featuredImageAlt ?? title}
+          widths={[400, 768, 1024]}
+          sizes="(max-width: 768px) 100vw, 768px"
+          class="w-full object-cover aspect-video"
+          loading="eager"
+        />
+      </div>
+    )}
+
+    <!-- Botões Amazon (topo) -->
+    {amazonLinks.length > 0 && (
+      <div class="mb-8 flex flex-wrap gap-3">
+        {amazonLinks.map(link => (
+          <AmazonButton href={link.url} label={link.label} />
+        ))}
+      </div>
+    )}
+
+    <!-- Conteúdo -->
+    <div class="prose">
+      <slot />
+    </div>
+
+    <!-- Botões Amazon (rodapé do artigo) -->
+    {amazonLinks.length > 0 && (
+      <div class="mt-10 p-6 bg-orange-50 border border-orange-100 rounded-xl">
+        <p class="text-sm font-semibold text-gray-700 mb-3">Comprar na Amazon:</p>
+        <div class="flex flex-wrap gap-3">
+          {amazonLinks.map(link => (
+            <AmazonButton href={link.url} label={link.label} />
+          ))}
+        </div>
+        <p class="mt-3 text-xs text-gray-400">
+          Como Associado Amazon, ganho comissões em compras elegíveis.
+        </p>
+      </div>
+    )}
+
+  </article>
+</Base>

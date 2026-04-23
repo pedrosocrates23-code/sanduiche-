@@ -1,0 +1,29 @@
+---
+import { getCollection, render } from 'astro:content';
+import Post from '../layouts/Post.astro';
+
+export async function getStaticPaths() {
+  const posts = await getCollection('posts', ({ data }) => !data.draft);
+  return posts.map(post => ({
+    params: { slug: post.data.slug },
+    props: { post },
+  }));
+}
+
+const { post } = Astro.props;
+const { Content } = await render(post);
+const { title, description, pubDate, updatedDate, featuredImage, featuredImageAlt, slug, amazonLinks } = post.data;
+---
+
+<Post
+  title={title}
+  description={description}
+  pubDate={pubDate}
+  updatedDate={updatedDate}
+  featuredImage={featuredImage ? `/images/${featuredImage}` : undefined}
+  featuredImageAlt={featuredImageAlt}
+  slug={slug}
+  amazonLinks={amazonLinks}
+>
+  <Content />
+</Post>

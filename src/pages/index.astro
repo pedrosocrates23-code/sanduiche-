@@ -1,0 +1,98 @@
+---
+import Base from '../layouts/Base.astro';
+import { getCollection } from 'astro:content';
+
+const allPosts = await getCollection('posts', ({ data }) => !data.draft);
+const sorted = allPosts.sort((a, b) => b.data.pubDate.getTime() - a.data.pubDate.getTime());
+
+const destaques = [
+  { slug: 'melhores-sanduicheiras-eletricas-em-2025', label: 'Melhores 2025' },
+  { slug: 'como-escolher-sanduicheira', label: 'Como Escolher' },
+  { slug: 'diferenca-entre-sanduicheira-e-grill', label: 'Sanduicheira vs Grill' },
+  { slug: 'sanduicheira-melhor-custo-beneficio', label: 'Custo-Benefício' },
+];
+---
+
+<Base
+  title="Guia da Sanduicheira — Análises e Reviews de Sanduicheiras e Grills"
+  description="Reviews e análises honestas das melhores sanduicheiras e grills elétricos do mercado. Encontre o modelo ideal para sua cozinha."
+>
+  <section class="bg-gradient-to-br from-orange-50 to-amber-50 border-b border-orange-100 py-16 px-4">
+    <div class="mx-auto max-w-4xl text-center">
+      <p class="text-orange-600 font-semibold text-sm uppercase tracking-wider mb-3">Guia Completo</p>
+      <h1 class="text-4xl sm:text-5xl font-bold text-gray-900 mb-4 leading-tight">
+        Descubra as Melhores<br/>
+        <span class="text-orange-600">Sanduicheiras e Grills</span>
+      </h1>
+      <p class="text-xl text-gray-600 mb-8 max-w-2xl mx-auto">
+        Reviews honestos e independentes para você escolher o modelo certo sem erro.
+      </p>
+      <div class="flex flex-wrap justify-center gap-3">
+        {destaques.map(d => (
+          <a href={`/${d.slug}`} class="inline-flex items-center rounded-full bg-white border border-orange-200 px-4 py-2 text-sm font-medium text-gray-700 hover:border-orange-400 hover:text-orange-600 transition-colors shadow-sm no-underline">
+            {d.label}
+          </a>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <section class="mx-auto max-w-5xl px-4 py-12">
+    <h2 class="text-2xl font-bold text-gray-900 mb-2">Análises Recentes</h2>
+    <p class="text-gray-500 mb-8">Reviews completos com prós, contras e links para compra na Amazon.</p>
+    <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+      {sorted.map(post => (
+        <article class="group rounded-xl border border-gray-100 bg-white shadow-sm hover:shadow-md transition-shadow overflow-hidden">
+          {post.data.featuredImage && (
+            <a href={`/${post.data.slug}`} class="block overflow-hidden bg-gray-100 aspect-video">
+              <img
+                src={`/images/${post.data.featuredImage}`}
+                alt={post.data.featuredImageAlt ?? post.data.title}
+                class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                loading="lazy"
+                decoding="async"
+              />
+            </a>
+          )}
+          <div class="p-4">
+            <a href={`/${post.data.slug}`} class="no-underline">
+              <h3 class="font-semibold text-gray-900 text-base mb-1 line-clamp-2 group-hover:text-orange-600 transition-colors">
+                {post.data.title}
+              </h3>
+            </a>
+            <p class="text-sm text-gray-500 line-clamp-2 mb-3">{post.data.description}</p>
+            <div class="flex items-center justify-between">
+              <time class="text-xs text-gray-400">
+                {post.data.pubDate.toLocaleDateString('pt-BR', { day:'2-digit', month:'short', year:'numeric' })}
+              </time>
+              {post.data.amazonLinks.length > 0 && (
+                <span class="text-xs bg-orange-50 text-orange-700 rounded-full px-2.5 py-1 font-medium">🛒 Amazon</span>
+              )}
+            </div>
+          </div>
+        </article>
+      ))}
+    </div>
+  </section>
+
+  <section class="bg-gray-50 border-y border-gray-100 py-12 px-4">
+    <div class="mx-auto max-w-5xl">
+      <h2 class="text-2xl font-bold text-gray-900 mb-8">Guias para Você Escolher Melhor</h2>
+      <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        {[
+          { slug: 'como-escolher-sanduicheira', title: 'Como Escolher uma Sanduicheira', icon: '🔍' },
+          { slug: 'diferenca-entre-sanduicheira-e-grill', title: 'Diferença: Sanduicheira vs Grill', icon: '⚡' },
+          { slug: 'o-que-fazer-na-sanduicheira', title: 'O que Fazer na Sanduicheira?', icon: '🥗' },
+          { slug: 'como-limpar-sanduicheira-e-grill', title: 'Como Limpar Sanduicheira e Grill', icon: '🧹' },
+          { slug: 'como-funciona-sanduicheira', title: 'Como Funciona uma Sanduicheira', icon: '⚙️' },
+          { slug: 'melhor-sanduicheira-profissional', title: 'Melhor Sanduicheira Profissional', icon: '👨‍🍳' },
+        ].map(g => (
+          <a href={`/${g.slug}`} class="flex items-center gap-3 p-4 bg-white rounded-xl border border-gray-100 hover:border-orange-300 hover:shadow-sm transition-all no-underline group">
+            <span class="text-2xl">{g.icon}</span>
+            <span class="text-sm font-medium text-gray-800 group-hover:text-orange-600 transition-colors">{g.title}</span>
+          </a>
+        ))}
+      </div>
+    </div>
+  </section>
+</Base>

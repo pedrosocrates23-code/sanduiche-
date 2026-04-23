@@ -1,0 +1,88 @@
+---
+/**
+ * Componente Picture otimizado — serve AVIF (primário) e WebP (fallback).
+ * Nunca serve JPEG ou PNG diretamente ao browser.
+ */
+import { getImage } from 'astro:assets';
+
+interface Props {
+  src: string;
+  alt: string;
+  widths?: number[];
+  sizes?: string;
+  class?: string;
+  loading?: 'lazy' | 'eager';
+  decoding?: 'async' | 'sync' | 'auto';
+  fetchpriority?: 'high' | 'low' | 'auto';
+}
+
+const {
+  src,
+  alt,
+  widths = [400, 800],
+  sizes = '(max-width: 768px) 100vw, 800px',
+  class: className,
+  loading = 'lazy',
+  decoding = 'async',
+  fetchpriority,
+} = Astro.props;
+
+// Importa imagem local ou usa URL externa
+let resolvedSrc: ImageMetadata | string = src;
+
+// Para imagens locais em src/assets/images/
+let avifSrcset = '';
+let webpSrcset = '';
+let fallbackSrc = src;
+let isLocal = false;
+
+// Tentativa de importar imagem local dinamicamente
+const localImages = import.meta.glob<{ default: ImageMetadata }>(
+  '/src/assets/images/**/*.{jpg,jpeg,png,webp,avif}'
+);
+
+const localKey = `/src/assets/images/${src.replace(/^\//, '')}`;
+if (localImages[localKey]) {
+  const mod = await localImages[localKey]();
+  resolvedSrc = mod.default;
+  isLocal = true;
+}
+
+if (isLocal && typeof resolvedSrc !== 'string') {
+  // Gerar srcsets AVIF e WebP para cada largura
+  const avifImages = await Promise.all(
+    widths.map(w => getImage({ src: resolvedSrc as ImageMetadata, width: w, format: 'avif', quality: 82 }))
+  );
+  const webpImages = await Promise.all(
+    widths.map(w => getImage({ src: resolvedSrc as ImageMetadata, width: w, format: 'webp', quality: 85 }))
+  );
+
+  avifSrcset = avifImages.map((img, i) => `${img.src} ${widths[i]}w`).join(', ');
+  webpSrcset = webpImages.map((img, i) => `${img.src} ${widths[i]}w`).join(', ');
+  fallbackSrc = webpImages[webpImages.length - 1].src;
+} else {
+  // Imagem externa: usar srcset simples apontando para a URL
+  fallbackSrc = src;
+}
+---
+
+<picture>
+  {isLocal ? (
+    <>
+      <source type="image/avif" srcset={avifSrcset} {sizes} />
+      <source type="image/webp" srcset={webpSrcset} {sizes} />
+    </>
+  ) : (
+    <source type="image/webp" srcset={src} />
+  )}
+  <img
+    src={fallbackSrc}
+    alt={alt}
+    class={className}
+    loading={loading}
+    decoding={decoding}
+    fetchpriority={fetchpriority}
+    width={typeof resolvedSrc !== 'string' ? (resolvedSrc as ImageMetadata).width : undefined}
+    height={typeof resolvedSrc !== 'string' ? (resolvedSrc as ImageMetadata).height : undefined}
+  />
+</picture>
