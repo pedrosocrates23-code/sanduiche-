@@ -1,88 +1,67 @@
 ---
 /**
- * Componente Picture otimizado — serve AVIF (primário) e WebP (fallback).
- * Nunca serve JPEG ou PNG diretamente ao browser.
+ * Wrapper sobre <Picture> do astro:assets.
+ * Serve AVIF (primário) e WebP (fallback). Nunca JPEG/PNG no browser.
+ * Para imagens locais em src/assets/images/ faz a conversão em build time.
+ * Para imagens não encontradas, cai para <img> estático em /images/.
  */
-import { getImage } from 'astro:assets';
+import { Picture } from 'astro:assets';
 
 interface Props {
-  src: string;
+  src: string;               // nome do arquivo: "imagem.jpg"
   alt: string;
   widths?: number[];
   sizes?: string;
   class?: string;
   loading?: 'lazy' | 'eager';
-  decoding?: 'async' | 'sync' | 'auto';
   fetchpriority?: 'high' | 'low' | 'auto';
 }
 
 const {
   src,
   alt,
-  widths = [400, 800],
-  sizes = '(max-width: 768px) 100vw, 800px',
+  widths = [400, 768, 1200],
+  sizes = '(max-width: 768px) 100vw, 768px',
   class: className,
   loading = 'lazy',
-  decoding = 'async',
   fetchpriority,
 } = Astro.props;
 
-// Importa imagem local ou usa URL externa
-let resolvedSrc: ImageMetadata | string = src;
-
-// Para imagens locais em src/assets/images/
-let avifSrcset = '';
-let webpSrcset = '';
-let fallbackSrc = src;
-let isLocal = false;
-
-// Tentativa de importar imagem local dinamicamente
+// Pré-carrega todos os módulos de imagem locais em build time
 const localImages = import.meta.glob<{ default: ImageMetadata }>(
-  '/src/assets/images/**/*.{jpg,jpeg,png,webp,avif}'
+  '/src/assets/images/**/*.{jpg,jpeg,png,webp}'
 );
 
-const localKey = `/src/assets/images/${src.replace(/^\//, '')}`;
-if (localImages[localKey]) {
-  const mod = await localImages[localKey]();
-  resolvedSrc = mod.default;
-  isLocal = true;
-}
-
-if (isLocal && typeof resolvedSrc !== 'string') {
-  // Gerar srcsets AVIF e WebP para cada largura
-  const avifImages = await Promise.all(
-    widths.map(w => getImage({ src: resolvedSrc as ImageMetadata, width: w, format: 'avif', quality: 82 }))
-  );
-  const webpImages = await Promise.all(
-    widths.map(w => getImage({ src: resolvedSrc as ImageMetadata, width: w, format: 'webp', quality: 85 }))
-  );
-
-  avifSrcset = avifImages.map((img, i) => `${img.src} ${widths[i]}w`).join(', ');
-  webpSrcset = webpImages.map((img, i) => `${img.src} ${widths[i]}w`).join(', ');
-  fallbackSrc = webpImages[webpImages.length - 1].src;
-} else {
-  // Imagem externa: usar srcset simples apontando para a URL
-  fallbackSrc = src;
-}
+const key = `/src/assets/images/${src}`;
+const imageLoader = localImages[key];
+const imageData = imageLoader ? (await imageLoader()).default : null;
 ---
 
-<picture>
-  {isLocal ? (
-    <>
-      <source type="image/avif" srcset={avifSrcset} {sizes} />
-      <source type="image/webp" srcset={webpSrcset} {sizes} />
-    </>
-  ) : (
-    <source type="image/webp" srcset={src} />
-  )}
-  <img
-    src={fallbackSrc}
+{imageData ? (
+  <Picture
+    src={imageData}
     alt={alt}
+    widths={widths}
+    formats={['avif', 'webp']}
+    sizes={sizes}
     class={className}
     loading={loading}
-    decoding={decoding}
     fetchpriority={fetchpriority}
-    width={typeof resolvedSrc !== 'string' ? (resolvedSrc as ImageMetadata).width : undefined}
-    height={typeof resolvedSrc !== 'string' ? (resolvedSrc as ImageMetadata).height : undefined}
   />
-</picture>
+) : (
+  /* Fallback para imagem estática quando não encontrada em src/assets */
+  <picture>
+    <source
+      type="image/webp"
+      srcset={`/images/${src.replace(/\.(jpg|jpeg|png)$/i, '.webp')}`}
+    />
+    <img
+      src={`/images/${src}`}
+      alt={alt}
+      class={className}
+      loading={loading}
+      decoding="async"
+      fetchpriority={fetchpriority}
+    />
+  </picture>
+)}

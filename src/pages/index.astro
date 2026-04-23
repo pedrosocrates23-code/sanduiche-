@@ -1,5 +1,6 @@
 ---
 import Base from '../layouts/Base.astro';
+import OptimizedPicture from '../components/OptimizedPicture.astro';
 import { getCollection } from 'astro:content';
 
 const allPosts = await getCollection('posts', ({ data }) => !data.draft);
@@ -44,13 +45,13 @@ const destaques = [
       {sorted.map(post => (
         <article class="group rounded-xl border border-gray-100 bg-white shadow-sm hover:shadow-md transition-shadow overflow-hidden">
           {post.data.featuredImage && (
-            <a href={`/${post.data.slug}`} class="block overflow-hidden bg-gray-100 aspect-video">
-              <img
-                src={`/images/${post.data.featuredImage}`}
+            <a href={`/${post.data.slug}`} class="block overflow-hidden bg-gray-100 aspect-video [&_img]:w-full [&_img]:h-full [&_img]:object-cover [&_img]:group-hover:scale-105 [&_img]:transition-transform [&_img]:duration-300 [&_picture]:w-full [&_picture]:h-full">
+              <OptimizedPicture
+                src={post.data.featuredImage}
                 alt={post.data.featuredImageAlt ?? post.data.title}
-                class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                widths={[400, 640]}
+                sizes="(max-width: 640px) 100vw, 360px"
                 loading="lazy"
-                decoding="async"
               />
             </a>
           )}
