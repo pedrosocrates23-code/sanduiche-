@@ -1,5 +1,6 @@
 ---
 import '../styles/global.css';
+import SchemaOrg from '../components/SchemaOrg.astro';
 
 interface Props {
   title: string;
@@ -8,6 +9,11 @@ interface Props {
   canonicalUrl?: string;
   type?: 'website' | 'article';
   pubDate?: Date;
+  schemaType?: 'home' | 'post' | 'page' | 'contact';
+  schemaFaqs?: { q: string; a: string }[];
+  schemaAmazon?: { label: string; url: string }[];
+  schemaBreadcrumb?: { name: string; url: string }[];
+  updatedDate?: Date;
 }
 
 const {
@@ -17,6 +23,11 @@ const {
   canonicalUrl,
   type = 'website',
   pubDate,
+  schemaType = 'page',
+  schemaFaqs = [],
+  schemaAmazon = [],
+  schemaBreadcrumb = [],
+  updatedDate,
 } = Astro.props;
 
 const siteUrl = 'https://guiadasanduicheira.com.br';
@@ -63,6 +74,20 @@ const ogImage = image.startsWith('http') ? image : `${siteUrl}${image}`;
       href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
       media="print"
       onload="this.media='all'"
+    />
+
+    <!-- Dados estruturados JSON-LD -->
+    <SchemaOrg
+      type={schemaType}
+      url={canonical}
+      title={title}
+      description={description}
+      image={ogImage}
+      pubDate={pubDate}
+      updatedDate={updatedDate}
+      faqs={schemaFaqs}
+      amazonLinks={schemaAmazon}
+      breadcrumb={schemaBreadcrumb}
     />
 
     <slot name="head" />

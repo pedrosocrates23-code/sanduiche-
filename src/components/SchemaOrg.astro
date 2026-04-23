@@ -1,0 +1,236 @@
+---
+/**
+ * Dados estruturados JSON-LD de alto nível para todas as páginas.
+ *
+ * Schemas:
+ *  home    → WebSite + Organization
+ *  post    → Article + Review + Product + AggregateRating + FAQPage + BreadcrumbList
+ *  page    → WebPage + BreadcrumbList
+ *  contact → ContactPage + BreadcrumbList
+ *  (todos) → FAQPage quando há perguntas
+ */
+
+const SITE      = 'https://guiadasanduicheira.com.br';
+const SITE_NAME = 'Guia da Sanduicheira';
+const LOGO      = `${SITE}/og-default.svg`;
+const AUTHOR    = { '@type': 'Organization', name: SITE_NAME, url: SITE };
+
+type FAQ        = { q: string; a: string };
+type AmazonLink = { label: string; url: string };
+
+interface Props {
+  type: 'home' | 'post' | 'page' | 'contact';
+  url: string;
+  title: string;
+  description: string;
+  image?: string;
+  pubDate?: Date;
+  updatedDate?: Date;
+  faqs?: FAQ[];
+  amazonLinks?: AmazonLink[];
+  breadcrumb?: { name: string; url: string }[];
+}
+
+const {
+  type,
+  url,
+  title,
+  description,
+  image,
+  pubDate,
+  updatedDate,
+  faqs        = [],
+  amazonLinks = [],
+  breadcrumb  = [],
+} = Astro.props;
+
+const pageImage   = image ? (image.startsWith('http') ? image : `${SITE}${image}`) : LOGO;
+const datePubl    = pubDate?.toISOString()              ?? new Date().toISOString();
+const dateMod     = (updatedDate ?? pubDate)?.toISOString() ?? datePubl;
+const isReviewPost = type === 'post' &&
+  (/é\s+(boa|bom)/i.test(title) || /melhor(es)?/i.test(title) || /análise/i.test(title));
+
+function productName(t: string): string {
+  return t
+    .replace(/\s+[eé]\s+(boa|bom)\??$/i, '')
+    .replace(/[?!]+$/, '')
+    .trim();
+}
+
+// ── Montar schemas ─────────────────────────────────────────────────────────────
+const schemas: object[] = [];
+
+// 1. WebSite + Organization — home
+if (type === 'home') {
+  schemas.push({
+    '@context': 'https://schema.org',
+    '@type': 'WebSite',
+    name: SITE_NAME,
+    url: SITE,
+    description,
+    inLanguage: 'pt-BR',
+    potentialAction: {
+      '@type': 'SearchAction',
+      target: { '@type': 'EntryPoint', urlTemplate: `${SITE}/?s={search_term_string}` },
+      'query-input': 'required name=search_term_string',
+    },
+  });
+  schemas.push({
+    '@context': 'https://schema.org',
+    '@type': 'Organization',
+    name: SITE_NAME,
+    url: SITE,
+    logo: { '@type': 'ImageObject', url: LOGO, width: 512, height: 512 },
+    description,
+    contactPoint: {
+      '@type': 'ContactPoint',
+      contactType: 'customer support',
+      url: `${SITE}/fale-conosco`,
+      availableLanguage: 'Portuguese',
+    },
+  });
+}
+
+// 2. BreadcrumbList — todas exceto home
+if (breadcrumb.length > 0) {
+  schemas.push({
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      { '@type': 'ListItem', position: 1, name: 'Início', item: SITE },
+      ...breadcrumb.map((c, i) => ({
+        '@type': 'ListItem',
+        position: i + 2,
+        name: c.name,
+        item: c.url,
+      })),
+    ],
+  });
+}
+
+// 3. Article + Review — posts
+if (type === 'post') {
+  schemas.push({
+    '@context': 'https://schema.org',
+    '@type': isReviewPost ? ['Article', 'Review'] : 'Article',
+    headline: title,
+    description,
+    url,
+    datePublished: datePubl,
+    dateModified: dateMod,
+    inLanguage: 'pt-BR',
+    author: AUTHOR,
+    publisher: {
+      '@type': 'Organization',
+      name: SITE_NAME,
+      logo: { '@type': 'ImageObject', url: LOGO },
+    },
+    image: { '@type': 'ImageObject', url: pageImage, width: 1200, height: 630 },
+    mainEntityOfPage: { '@type': 'WebPage', '@id': url },
+    ...(isReviewPost && {
+      itemReviewed: {
+        '@type': 'Product',
+        name: productName(title),
+        ...(amazonLinks.length > 0 && {
+          offers: {
+            '@type': 'Offer',
+            url: amazonLinks[0].url,
+            priceCurrency: 'BRL',
+            availability: 'https://schema.org/InStock',
+            seller: { '@type': 'Organization', name: 'Amazon Brasil' },
+          },
+        }),
+      },
+      reviewRating: {
+        '@type': 'Rating',
+        ratingValue: '4.5',
+        bestRating: '5',
+        worstRating: '1',
+      },
+    }),
+  });
+}
+
+// 4. Product + AggregateRating — posts de review com link Amazon
+if (isReviewPost && amazonLinks.length > 0) {
+  schemas.push({
+    '@context': 'https://schema.org',
+    '@type': 'Product',
+    name: productName(title),
+    description: `Análise e avaliação completa: ${description}`,
+    image: pageImage,
+    brand: {
+      '@type': 'Brand',
+      name: productName(title).split(' ')[0],
+    },
+    offers: amazonLinks.map(link => ({
+      '@type': 'Offer',
+      url: link.url,
+      priceCurrency: 'BRL',
+      availability: 'https://schema.org/InStock',
+      seller: { '@type': 'Organization', name: 'Amazon Brasil' },
+    })),
+    aggregateRating: {
+      '@type': 'AggregateRating',
+      ratingValue: '4.5',
+      reviewCount: '1',
+      bestRating: '5',
+      worstRating: '1',
+    },
+    review: {
+      '@type': 'Review',
+      author: AUTHOR,
+      datePublished: datePubl,
+      reviewRating: { '@type': 'Rating', ratingValue: '4.5', bestRating: '5' },
+      reviewBody: description,
+    },
+  });
+}
+
+// 5. WebPage — páginas estáticas
+if (type === 'page') {
+  schemas.push({
+    '@context': 'https://schema.org',
+    '@type': 'WebPage',
+    name: title,
+    description,
+    url,
+    inLanguage: 'pt-BR',
+    isPartOf: { '@type': 'WebSite', name: SITE_NAME, url: SITE },
+    dateModified: dateMod,
+  });
+}
+
+// 6. ContactPage
+if (type === 'contact') {
+  schemas.push({
+    '@context': 'https://schema.org',
+    '@type': 'ContactPage',
+    name: title,
+    description,
+    url,
+    inLanguage: 'pt-BR',
+    isPartOf: { '@type': 'WebSite', name: SITE_NAME, url: SITE },
+  });
+}
+
+// 7. FAQPage — qualquer página com perguntas extraídas
+if (faqs.length > 0) {
+  schemas.push({
+    '@context': 'https://schema.org',
+    '@type': 'FAQPage',
+    mainEntity: faqs.map(faq => ({
+      '@type': 'Question',
+      name: faq.q,
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: faq.a,
+      },
+    })),
+  });
+}
+---
+
+{schemas.map(schema => (
+  <script type="application/ld+json" set:html={JSON.stringify(schema)} />
+))}

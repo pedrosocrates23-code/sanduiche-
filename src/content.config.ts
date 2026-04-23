@@ -18,6 +18,10 @@ const posts = defineCollection({
       url: z.string().url(),
     })).default([]),
     draft: z.boolean().default(false),
+    faqs: z.array(z.object({
+      q: z.string(),
+      a: z.string(),
+    })).default([]),
   }),
 });
 
